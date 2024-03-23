@@ -1,0 +1,53 @@
+split the input text into cumulative lines CL(i): (L1..Li)
+idea is to assume each CL(i) to be a valid test-file in itself.
+call user-written solution to execute on each CL(i) on different threads.
+Wait for some few milliseconds and check exit signal of process to deduce if CL(i) was valid or not.
+Some index recording stuff to actually retrieve the correct test cases at the end.
+----------------------------------------------------------------------------------------------------------------------------
+main():
+	prepare CL(i).
+	prepare std_in.
+	suppose the whole orginal testfile having n lines is supposed to have k sample tests, then we
+	make (n*k) std_in/s
+	(basically each CL(i) for each testnumber 1...n)
+	{
+		testnum(1...k) 
+		CL(i)
+	}
+	
+	get a stopsource and spawn lotsss of threads and pass all of them to execute caller().
+	wait 20ms before asking each thread to exit.
+	
+	see what we got in ansidx[].
+	ansidx[j] = smallest(min CL(i)) whose corresponding std_in succeeded for testnum = j
+	use this to do the actual split of test cases.
+	
+	
+caller():
+	takes stoptoken so that main() can ask the thread to stop.
+	std_in: whatever CL(i) that you have assumed to be a valid testfile.
+	testnum: the test-number (1st, 2nd, 3rd,...) that this std_in is trying to recognize.
+	pos: the line number i, where CL(i) ends (inclusive) in the original testfile.
+	
+	prepare the "ID" for each "trial" as testnumXpos
+	make copy of user written solution's binary for this trial
+	prepare name to open a two way pipe of name "ppipeID"
+	
+	fork
+	child process simply executes "./solutionID < ppipeID > outID"
+	child is expected read data as it is gets written (becomes available) in twoway pipe.
+	
+	parent process
+	opens the two way pipe.
+	writes std_in to the pipe.
+	sleeps for few ms
+	wake up and chill until main() asks you (which you are a thread) to exit
+	send SIGKILL to child and get return code in wstatus variable
+	if return code says normal exit, then update ansidx[testnum] to be the smallest of the 
+	std_in/s that have succeeded for this testnum. Maybe other threads already succeeded so thats why min.
+	close the pipe created
+	Delete copies of solprog and the pipe created.
+	
+	
+	
+
