@@ -18,9 +18,9 @@ var launched int = 0
 var finished int = 0
 
 func muPrintln(t ...any) {
-    mu.Lock()
+	mu.Lock()
 	log.Println(t...)
-    mu.Unlock()
+	mu.Unlock()
 }
 
 func filter(str string) int {
@@ -55,7 +55,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, goodchannel chan<- *work, w
 	defer func() {
 		finished++
 		wg.Done()
-	
+
 	}()
 	cmd := exec.CommandContext(ctx, exepath)
 	stdin, _ := cmd.StdinPipe()
@@ -69,19 +69,19 @@ func worker(ctx context.Context, wg *sync.WaitGroup, goodchannel chan<- *work, w
 		muPrintln("error in starting executable", err)
 		return
 	}
-	
+
 	launched++
-	
+
 	stdin.Write([]byte((*wrk).input))
 	readstdout, _ := io.ReadAll(stdout)
-	
+
 	err = cmd.Wait()
 
 	if err == nil {
 		goodchannel <- wrk
 		muPrintln("i/p:", (*wrk).input)
 		muPrintln("stdout :", string(readstdout))
-		
+
 		muPrintln(err)
 		muPrintln("=====================================")
 	}
@@ -111,9 +111,9 @@ func sender(ctx context.Context, wg *sync.WaitGroup, goodchannel chan *work,
 		for j, l := range prefixes {
 			input := tmp + "\n" + l
 			one_work := work{input, j + 1, i}
-		
+
 			timeout_ctx, _ := context.WithTimeout(ctx, 1000*time.Millisecond)
-			
+
 			(*wg).Add(1)
 			go worker(timeout_ctx, wg, goodchannel, &one_work)
 		}
@@ -159,7 +159,7 @@ Loop:
 		}
 	}
 
-	muPrintln("tetst_data line no values found: ")
+	muPrintln("test_data line no values found: ")
 	muPrintln("size test_data:", len(test_data))
 	for i, r := range test_data {
 		muPrintln(i, (*r).line_no)
@@ -167,12 +167,10 @@ Loop:
 	muPrintln("FINAL ISOLATED TESTS")
 	old := 0
 	for i := 1; i <= T; i++ {
-		input := ""
+		input := "1\n"
 		for j := old + 1; j <= (*test_data[i-1]).line_no; j++ {
 			input += strlist[j-1]
 		}
-		
-		
 		old = (*test_data[i-1]).line_no
 		Filewriter(input, i)
 	}
@@ -180,11 +178,11 @@ Loop:
 
 func main() {
 	args := os.Args[1:]
-    if len(args) > 2 {
-        log.SetOutput(os.Stdout)
-    } else {
-        log.SetOutput(io.Discard)
-    }
+	if len(args) > 2 {
+		log.SetOutput(os.Stdout)
+	} else {
+		log.SetOutput(io.Discard)
+	}
 	file, err := os.Open(args[0])
 	if err != nil {
 		muPrintln("Error in opening File: ", err)
